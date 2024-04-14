@@ -2,13 +2,13 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
+
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
 use std::vec::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct Node<T> {
     val: T,
     next: Option<NonNull<Node<T>>>,
@@ -22,7 +22,7 @@ impl<T> Node<T> {
         }
     }
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct LinkedList<T> {
     length: u32,
     start: Option<NonNull<Node<T>>>,
@@ -35,7 +35,7 @@ impl<T> Default for LinkedList<T> {
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T>LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -43,7 +43,9 @@ impl<T> LinkedList<T> {
             end: None,
         }
     }
-
+}
+impl<T: PartialOrd + Clone + std::cmp::PartialOrd> LinkedList<T> {
+    
     pub fn add(&mut self, obj: T) {
         let mut node = Box::new(Node::new(obj));
         node.next = None;
@@ -69,14 +71,46 @@ impl<T> LinkedList<T> {
             },
         }
     }
+    pub fn len(&mut self) -> i32 {
+        self.length.try_into().unwrap()
+    }
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
 	{
 		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+		let mut merged_list = LinkedList::new();
+
+        let mut cursor_a = list_a.start;
+        let mut cursor_b = list_b.start;
+
+        // 比较两个链表的节点，并将较小的节点添加到结果链表中
+        while let (Some(node_a), Some(node_b)) = (cursor_a, cursor_b) {
+            let val_a = unsafe { node_a.as_ref().val.clone() };
+            let val_b = unsafe { node_b.as_ref().val.clone() };
+
+            if val_a < val_b {
+                merged_list.add(val_a);
+                cursor_a = unsafe { node_a.as_ref().next };
+            } else {
+                merged_list.add(val_b);
+                cursor_b = unsafe { node_b.as_ref().next };
+            }
         }
+
+        // 将剩余的节点连接到结果链表的末尾
+        while let Some(node_a) = cursor_a {
+            let val = unsafe { node_a.as_ref().val.clone() };
+            merged_list.add(val);
+            cursor_a = unsafe { node_a.as_ref().next };
+        }
+
+        while let Some(node_b) = cursor_b {
+            let val = unsafe { node_b.as_ref().val.clone() };
+            merged_list.add(val);
+            cursor_b = unsafe { node_b.as_ref().next };
+        }
+
+        merged_list
+    
 	}
 }
 
